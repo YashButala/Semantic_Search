@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Flask Parent Template</title>
+    <link rel="stylesheet" href="{{ url_for('static',     filename='css/home.css') }}">
+  </head>
+  <body>
+    {% extends "template.html" %}
+    {% block content %}
+
+    <h1> KMST Project </h1>
+    <p>
+      Created by:<br />
+      Yash Butala<br />
+      Rohit Pathak<br />
+      Anunay SHarma<br />
+      </p>
+    
+    {% endblock %}
+  </body>
+</html>
