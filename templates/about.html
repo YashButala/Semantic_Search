@@ -3,16 +3,37 @@
   <head>
     <meta charset="utf-8">
     <title>About Flask</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/template.css') }}">
+
   </head>
   <body>
     {% extends "template.html" %}
     {% block content %}
 
-    <h1> About Flask </h1>
-    <p> Flask is a micro web framework written in Python.</p>
-    <p> Applications that use the Flask framework include Pinterest,
-      LinkedIn, and the community web page for Flask itself.</p>
-
+    <h1> About the Project </h1>
+    <h2> Aim </h2>
+    <p> Our aim was to provide an attractive and easy-to-use interface which can be used to acquire information related to charecteristics of various countries.
+      Charecteristics like population-distribution, climate, demographics, types of vegetation etc....any information related to that country can be queried on the search bar which will give desired search results.</p>
+    <h2> Motivation</h2>  
+    <p>In the web of data, searching produces different sites from which we have to choose to gather the information we want.
+      Many times, a single source or site is not enough to gather all the relevant and required information.
+      Also, data will probably be available in vastly different formats on different sites and sources.
+      Hence, we have used semantic web which uses a Standard Representation of Data for all sources and data from all sources is joined.
+    </p>
+    <p>Example - Number of countries having area greater than 1000000 sq.km. and having more than 3 official languages. </p>
+    <h2> Scope</h2>
+    <p>Anyone looking for an expansive body of international data all at one place. </p>
+    <p>This includes a wide variety of people including officials, researchers, organisations, corporations, students and teachers etc...</p>
+    <h2>Important Features</h2>
+    <ul>
+    <li>Integrated universal data.</li>
+    <li>Query, represent and manage data on basis of different attributes.</li>
+    <li>Uses wikidata. </li>
+    <li>Easily exploitable data.</li>
+    <li>Provide links to other important databases for more detail.</li>
+    </ul>
+    <h2>Softwares used</h2>
     {% endblock %}
   </body>
 </html>
