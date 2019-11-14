@@ -81,3 +81,31 @@ if(tagged_words[0][0]=='List'):
     #print(comp)
     #print(limit)
 
+if(tagged_words[0][0]=='How'):
+    attribute=''
+    comp=0  #greater=1,lesser=-1,0 otherwise
+    limit=0 
+    i=0
+    f=0
+    for word in tagged_words:
+        i+=1
+        if(i<5):
+            continue
+        if(word[0]!='greater' and word[0]!='lesser' and word[0]!='than'):
+            if(not f):
+                attribute+=' '+word[0]
+            else:
+                limit=word[0]
+        elif(word[0]=='greater'):
+            comp=1
+        elif(word[0]=='lesser'):
+            comp=-1
+        elif(word[0]=='than'):
+            f=1
+    attribute=attribute[1:]
+    #print("listEach")
+    sparql.howMany(attribute,comp,limit)
+    #print(attribute)
+    #print(comp)
+    #print(limit)
+

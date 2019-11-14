@@ -116,3 +116,77 @@ def listEach(attribute,comp,limit):
       for result in results["results"]["bindings"]:
           print(result["countryLabel"]["value"],end="\t")
           print(result["res"]["value"],end="\n")
+def howMany(attribute,comp,limit):
+  sparql = SPARQLWrapper("http://query.wikidata.org/sparql")
+  if(comp==0):
+      sql = """ 
+      SELECT (COUNT(?countryLabel) AS ?res)
+      WHERE
+      {
+        ?property wdt:P31/wdt:P279* wd:Q18616576;
+                 rdfs:label "%s"@en;
+                  wikibase:directClaim  ?wdt.
+        ?country wdt:P31 wd:Q3624078.
+         ?country  ?wdt ?res;
+                 rdfs:label ?countryLabel.
+        FILTER (lang(?countryLabel) = "en")
+        SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+      }
+
+      """%(attribute)
+      #print(attribute)
+      sparql.setQuery(sql)
+
+      sparql.setReturnFormat(JSON)
+      results = sparql.query().convert()
+      for result in results["results"]["bindings"]:
+          print(result["res"]["value"],end="\n")
+  if(comp==1):
+      sql = """ 
+      SELECT (COUNT(?countryLabel) AS ?res)
+      WHERE
+      {
+        ?property wdt:P31/wdt:P279* wd:Q18616576;
+                 rdfs:label "%s"@en;
+                  wikibase:directClaim  ?wdt.
+        ?country wdt:P31 wd:Q3624078.
+         ?country  ?wdt ?res;
+                 rdfs:label ?countryLabel.
+        FILTER (lang(?countryLabel) = "en")
+        FILTER(?res>%s)
+        SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+      }
+
+      """%(attribute,limit)
+      #print(attribute,limit)
+      sparql.setQuery(sql)
+
+      sparql.setReturnFormat(JSON)
+      results = sparql.query().convert()
+      for result in results["results"]["bindings"]:
+          print(result["res"]["value"],end="\n")
+  if(comp==-1):
+      sql = """ 
+      SELECT (COUNT(?countryLabel) AS ?res)
+      WHERE
+      {
+        ?property wdt:P31/wdt:P279* wd:Q18616576;
+                 rdfs:label "%s"@en;
+                  wikibase:directClaim  ?wdt.
+        ?country wdt:P31 wd:Q3624078.
+         ?country  ?wdt ?res;
+                 rdfs:label ?countryLabel.
+        FILTER (lang(?countryLabel) = "en")
+        FILTER(?res<%s)
+        SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+      }
+
+      """%(attribute,limit)
+      print(attribute,limit)
+      sparql.setQuery(sql)
+
+      sparql.setReturnFormat(JSON)
+      results = sparql.query().convert()
+      #print(results)
+      for result in results["results"]["bindings"]:
+          print(result["res"]["value"],end="\n")
