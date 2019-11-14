@@ -24,54 +24,11 @@ for word in words:
 
 print(processedWords)
 tagged_words = nltk.pos_tag(processedWords)
+print(tagged_words)
 print('Searching...')
 
-#Case where was born
-# if (tagged_words[0][1] == 'WRB' and tagged_words[0][0] == 'Where' and tagged_words[1][1] == 'VBN'):
-#     term = ''
-#     i = 0
-#     for word in tagged_words:
-#         if (word[1] == 'NNP'):
-#             if (i == 0):
-#                 term += word[0]
-#             else:
-#                 term += ' ' + word[0]
-
-#             i += 1
-    
-#     sparql.whereWasBorn(term)
-
-#Case who
-# if (tagged_words[0][1] == 'WP'):
-#     name = ''
-#     i = 0
-#     for word in tagged_words:
-#         if (word[1] == 'NNP'):
-#             if (i == 0):
-#                 name += word[0]
-#             else:
-#                 name += ' ' + word[0]
-        
-#             i += 1
-#     sparql.whoIs(name)
-
-#Case where
-# if (tagged_words[0][1] == 'WRB'):
-#     place = ''
-#     i = 0
-#     for word in tagged_words:
-#         if (word[1] != 'WRB' and word[1] != '.'):
-#             if (i == 0):
-#                 place += word[0]
-#             else:
-#                 place += ' ' + word[0]
-
-#             i += 1
-            
-#     sparql.whereIs(place)
-
-#Case what
-if (tagged_words[0][1] == 'WP' and tagged_words[0][0] == 'What'):
+#What <stopword> <attribute> of <term>
+if (tagged_words[0][0] == 'What'):
     term = ''
     #term+=tagged_words[2][0]
     attribute=''
@@ -93,18 +50,33 @@ if (tagged_words[0][1] == 'WP' and tagged_words[0][0] == 'What'):
     print(term)
     print(attribute)
     sparql.whatIs(term,attribute)
-
-# # case how to cook
-# if (tagged_words[0][1] == 'WRB' and tagged_words[0][0] == 'How'):
-#     term = ''
-#     i = 0
-#     for word in tagged_words:
-#         if (word[1] == 'NNP'):
-#             if (i == 0):
-#                 term += word[0]
-#             else:
-#                 term += ' ' + word[0]
-
-#             i += 1
+#List each country with <attribute> <greater/lesser than >
+#if(tagged_words[0][1]=='')
     
-#     sparql.howToCook(term)
+if(tagged_words[0][0]=='List'):
+    attribute=''
+    comp=0  #greater=1,lesser=-1,0 otherwise
+    limit=0 
+    i=0
+    f=0
+    for word in tagged_words:
+        i+=1
+        if(i<4):
+            continue
+        if(word[0]!='greater' and word[0]!='lesser' and word[0]!='than'):
+            if(not f):
+                attribute+=' '+word[0]
+            else:
+                limit=word[0]
+        elif(word[0]=='greater'):
+            comp=1
+        elif(word[0]=='lesser'):
+            comp=-1
+        elif(word[0]=='than'):
+            f=1
+    attribute=attribute[1:]
+    sparql.listEach(attribute,comp,limit)
+    #print(attribute)
+    #print(comp)
+    #print(limit)
+
