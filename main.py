@@ -8,7 +8,7 @@ processedWords = []
 words = nltk.word_tokenize(search)
 sTwords = stopwords.words('english')
 
-print(words)
+#print(words)
 #Removing stopwords
 flag=0
 for word in words:
@@ -22,9 +22,9 @@ for word in words:
         if(flag==2):
             processedWords.append(word)
 
-print(processedWords)
+#print(processedWords)
 tagged_words = nltk.pos_tag(processedWords)
-print(tagged_words)
+#print(tagged_words)
 print('Searching...')
 
 #What <stopword> <attribute> of <term>
@@ -45,10 +45,10 @@ if (tagged_words[0][0] == 'What'):
                 attribute+=' '+word[0]
     attribute=attribute[1:]
     term=term[1:]
-    print(tagged_words)
-    print(attribute)
-    print(term)
-    print(attribute)
+    #print(tagged_words)
+    #print(attribute)
+    #print(term)
+    #print(attribute)
     sparql.whatIs(term,attribute)
 #List each country with <attribute> <greater/lesser than >
 #if(tagged_words[0][1]=='')
@@ -75,6 +75,7 @@ if(tagged_words[0][0]=='List'):
         elif(word[0]=='than'):
             f=1
     attribute=attribute[1:]
+    #print("listEach")
     sparql.listEach(attribute,comp,limit)
     #print(attribute)
     #print(comp)
