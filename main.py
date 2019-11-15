@@ -1,111 +1,70 @@
-from nltk.tokenize import word_tokenize
-import nltk
-from nltk.corpus import stopwords
-import sparql
+from flask import Flask, render_template
+#from db_setup import init_db, db_session
+from forms import MusicSearchForm
+from flask import flash, request, redirect, url_for
+import requests
+from query import do_query
+#from models import Album
 
-search = input("Search:")
-processedWords = []
-words = nltk.word_tokenize(search)
-sTwords = stopwords.words('english')
+app = Flask(__name__)
 
-#print(words)
-#Removing stopwords
-flag=0
-for word in words:
-    if word not in sTwords:
-        if(flag==0):
-            flag=1
-        else:
-            flag=2
-        processedWords.append(word)
-    else:
-        if(flag==2):
-            processedWords.append(word)
+@app.route("/",methods=["GET", "POST"])
+def index():
+    return render_template("index.html")
 
-#print(processedWords)
-tagged_words = nltk.pos_tag(processedWords)
-#print(tagged_words)
-print('Searching...')
+@app.route("/about",methods=["GET", "POST"])
+def about():
+    return render_template("about2.html")
 
-#What <stopword> <attribute> of <term>
-if (tagged_words[0][0] == 'What'):
-    term = ''
-    #term+=tagged_words[2][0]
-    attribute=''
-    #attribute+=tagged_words[1][0]
-    i = 0
-    f = 0
-    for word in tagged_words:
-        if(f):
-            term+=' '+word[0]
-        else:
-            if(word[0]=='of'):
-                f=1;
-            elif(word[0]!='What'):
-                attribute+=' '+word[0]
-    attribute=attribute[1:]
-    term=term[1:]
-    #print(tagged_words)
-    #print(attribute)
-    #print(term)
-    #print(attribute)
-    sparql.whatIs(term,attribute)
-#List each country with <attribute> <greater/lesser than >
-#if(tagged_words[0][1]=='')
+@app.route("/result_page/<result>", methods=["GET", "POST"])
+def result_page(result):
+    print('Request is shit', request)
+    return render_template('result.html', result=result)
+
+@app.route("/adder_page", methods=["GET", "POST"])    
+def adder_page():
+    errors = ""
+    result = None
+    print('it')
+    print('rEQUEST IS', request)
+    if request.method == "POST":
+        print('chala')
+        print(request)
+        question = None
+        print(1)
+        try:
+            question = request.get_data()
+            question=str(question[6:-3])
+            print(question)
+            question=question.replace("+"," ")
+
+        except:
+            errors += "<p>{!r} is not a query_string.</p>\n"
+        if question is not None:
+            print(question[2:-1])
+            result = do_query(question[2:-1])
+            print(question)
+            return redirect(url_for('result_page', result=result))
+
+    return '''
+        <html>
+            <body>
+                {errors}
+                <p>Enter your query:</p>
+                <form method="post" action="""{{ url_for('result_page', result={res}) }}""">
+                    <p><input name="Query" /></p>
+                    <p><input type="submit" value="Search" /></p>
+                </form>
+            </body>
+        </html>
+    '''.format(errors=errors,res=result)
     
-if(tagged_words[0][0]=='List'):
-    attribute=''
-    comp=0  #greater=1,lesser=-1,0 otherwise
-    limit=0 
-    i=0
-    f=0
-    for word in tagged_words:
-        i+=1
-        if(i<4):
-            continue
-        if(word[0]!='greater' and word[0]!='lesser' and word[0]!='than'):
-            if(not f):
-                attribute+=' '+word[0]
-            else:
-                limit=word[0]
-        elif(word[0]=='greater'):
-            comp=1
-        elif(word[0]=='lesser'):
-            comp=-1
-        elif(word[0]=='than'):
-            f=1
-    attribute=attribute[1:]
-    #print("listEach")
-    sparql.listEach(attribute,comp,limit)
-    #print(attribute)
-    #print(comp)
-    #print(limit)
 
-if(tagged_words[0][0]=='How'):
-    attribute=''
-    comp=0  #greater=1,lesser=-1,0 otherwise
-    limit=0 
-    i=0
-    f=0
-    for word in tagged_words:
-        i+=1
-        if(i<5):
-            continue
-        if(word[0]!='greater' and word[0]!='lesser' and word[0]!='than'):
-            if(not f):
-                attribute+=' '+word[0]
-            else:
-                limit=word[0]
-        elif(word[0]=='greater'):
-            comp=1
-        elif(word[0]=='lesser'):
-            comp=-1
-        elif(word[0]=='than'):
-            f=1
-    attribute=attribute[1:]
-    #print("listEach")
-    sparql.howMany(attribute,comp,limit)
-    #print(attribute)
-    #print(comp)
-    #print(limit)
 
+
+# @app.route("/salvador")    
+# def salvador():
+#     return "Hello, Salvador"
+    
+if __name__ == "__main__":
+    app.run(debug=True)
