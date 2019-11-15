@@ -1,192 +1,160 @@
 from SPARQLWrapper import SPARQLWrapper, JSON
 
-import json
 
-
-def whatIs(term,attribute):
-  sparql = SPARQLWrapper("http://query.wikidata.org/sparql")
+def whoIs(person):
+  ret = ""
+  sparql = SPARQLWrapper("http://dbpedia.org/sparql")
   sql = """ 
-SELECT DISTINCT  ?res
-WHERE
-{
-  ?property wdt:P31/wdt:P279* wd:Q18616576;
-           rdfs:label "%s"@en;
-            wikibase:directClaim  ?wdt.
-  ?country wdt:P31 wd:Q3624078.
-   ?country  ?wdt ?res;
-           rdfs:label "%s"@en;
-           rdfs:label ?countryLabel.
-  FILTER (lang(?countryLabel) = "en")
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
-}
+      PREFIX  dbpedia-owl:  <http://dbpedia.org/ontology/>
+      PREFIX dbpedia: <http://dbpedia.org/resource>
+      PREFIX dbpprop: <http://dbpedia.org/property>
 
-ORDER BY DESC(?res)
-LIMIT 10
-  """%(attribute,term)
-  #print(term,attribute)
+     SELECT DISTINCT ?person ?comment ?label
+      WHERE {
+        ?person rdf:type dbpedia-owl:Person.
+        ?person rdfs:comment ?comment.  
+        ?person rdfs:label ?label
+        FILTER regex(?label, "^%s", "i")
+        FILTER (LANG(?comment) = 'pt') 
+      }
+      LIMIT 1
+      """ % ''.join((person))
+  
+  sparql.setQuery(sql)
+  
+
+  sparql.setReturnFormat(JSON)
+  results = sparql.query().convert()
+
+  for result in results["results"]["bindings"]:
+      ret+=(result["comment"]["value"])
+  return ret
+     
+
+
+def whereIs(location):
+  ret = ""
+  sparql = SPARQLWrapper("http://dbpedia.org/sparql")
+  sql = """ 
+      PREFIX geo: <http://www.w3.org/2003/01/geo/wgs84_pos#>
+      PREFIX dbo: <http://dbpedia.org/ontology/>
+      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      PREFIX dbp: <http://dbpedia.org/property/>
+
+      SELECT *
+      WHERE  { 
+        ?location rdf:type dbo:Location.
+        ?location dbo:location ?country.
+        ?location rdfs:label ?label.
+        OPTIONAL {
+          ?country dbp:coordinatesType ?city.
+        }
+        ?country rdfs:label ?countryLabel.
+
+        FILTER regex(?label, "^%s", "i").
+       
+        
+
+      }
+      LIMIT 1
+      """ % ''.join((location))
+
+  sparql.setQuery(sql)
+  
+
+  sparql.setReturnFormat(JSON)
+  results = sparql.query().convert()
+
+  for result in results["results"]["bindings"]:
+      ret+=(result["countryLabel"]["value"])
+  return ret    
+
+def whatIs(term):
+  ret=""
+  sparql = SPARQLWrapper("http://dbpedia.org/sparql")
+  sql = """ 
+  PREFIX w3-owl: <http://www.w3.org/2002/07/owl#>
+  SELECT ?thing, ?comment, ?label
+    WHERE {
+      ?thing rdf:type w3-owl:Thing.
+      ?thing rdfs:comment ?comment.
+      ?thing rdfs:label ?label.
+      FILTER regex(?label, "^%s", "i").
+      FILTER (lang(?comment) = 'pt')
+    }
+  LIMIT 1
+  """ % ''.join((term))
+
   sparql.setQuery(sql)
 
   sparql.setReturnFormat(JSON)
   results = sparql.query().convert()
+
   for result in results["results"]["bindings"]:
-      print(result["res"]["value"],end="\t")
+      ret+= (result["comment"]["value"])
+  return ret    
+def howToCook(term):
+  ret=""
+  sparql = SPARQLWrapper("http://dbpedia.org/sparql")
+  sql = """ 
+  PREFIX  dbpedia-owl:  <http://dbpedia.org/ontology/>
+  PREFIX dbpedia: <http://dbpedia.org/resource>
+  PREFIX dbpprop: <http://dbpedia.org/property>
+     SELECT *
+      WHERE {
+        ?dessert rdf:type dbpedia-owl:Food.
+        ?dessert dbpedia-owl:ingredientName ?ing.
+        ?dessert dbpedia-owl:servingTemperature ?servingTemp.
+        ?dessert rdfs:comment ?comment.
+        ?dessert rdfs:label ?label.
+        FILTER regex(?label, "^%s", "i")
+        
+        FILTER (LANG(?comment) = 'pt') 
 
-def listEach(attribute,comp,limit):
-  sparql = SPARQLWrapper("http://query.wikidata.org/sparql")
-  if(comp==0):
-      sql = """ 
-      SELECT DISTINCT ?countryLabel ?res
-      WHERE
-      {
-        ?property wdt:P31/wdt:P279* wd:Q18616576;
-                 rdfs:label "%s"@en;
-                  wikibase:directClaim  ?wdt.
-        ?country wdt:P31 wd:Q3624078.
-         ?country  ?wdt ?res;
-                 rdfs:label ?countryLabel.
-        FILTER (lang(?countryLabel) = "en")
-        SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+      }
+      LIMIT 1
+  """ % ''.join((term))
+
+  sparql.setQuery(sql)
+
+  sparql.setReturnFormat(JSON)
+  results = sparql.query().convert()
+
+  for result in results["results"]["bindings"]:
+      ret+= (result["comment"]["value"] + "\n")
+      ret+= ('Ingredientes: ' + result["ing"]["value"] + "\n")
+      ret+= ('Servir: ' + result["servingTemp"]["value"] + "\n")
+
+  return ret
+      
+def whereWasBorn(person):
+  ret=""
+  sparql = SPARQLWrapper("http://dbpedia.org/sparql")
+  sql = """ 
+      PREFIX dbo: <http://dbpedia.org/ontology/>
+      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+      SELECT *
+      WHERE  { 
+        ?person rdf:type dbo:Person.
+        ?person rdfs:label ?label.
+        ?person dbo:birthPlace ?country.
+        ?country rdfs:label ?birthPlace.
+        FILTER regex(?label, "^%s", "i")
+
       }
 
-      ORDER BY ASC(?countryLabel)
-      LIMIT 1000
+      LIMIT 1
+      """ % ''.join((person))
+  
+  sparql.setQuery(sql)
+  
 
-      """%(attribute)
-      #print(attribute)
-      sparql.setQuery(sql)
+  sparql.setReturnFormat(JSON)
+  results = sparql.query().convert()
 
-      sparql.setReturnFormat(JSON)
-      results = sparql.query().convert()
-      for result in results["results"]["bindings"]:
-          print(result["countryLabel"]["value"],end="\t")
-          print(result["res"]["value"],end="\n")
-  if(comp==1):
-      sql = """ 
-      SELECT DISTINCT ?countryLabel ?res
-      WHERE
-      {
-        ?property wdt:P31/wdt:P279* wd:Q18616576;
-                 rdfs:label "%s"@en;
-                  wikibase:directClaim  ?wdt.
-        ?country wdt:P31 wd:Q3624078.
-         ?country  ?wdt ?res;
-                 rdfs:label ?countryLabel.
-        FILTER (lang(?countryLabel) = "en")
-        FILTER(?res>%s)
-        SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
-      }
-
-      ORDER BY ASC(?countryLabel)
-      LIMIT 1000
-
-      """%(attribute,limit)
-      #print(attribute,limit)
-      sparql.setQuery(sql)
-
-      sparql.setReturnFormat(JSON)
-      results = sparql.query().convert()
-      for result in results["results"]["bindings"]:
-          print(result["countryLabel"]["value"],end="\t")
-          print(result["res"]["value"],end="\n")
-  if(comp==-1):
-      sql = """ 
-      SELECT DISTINCT ?countryLabel ?res
-      WHERE
-      {
-        ?property wdt:P31/wdt:P279* wd:Q18616576;
-                 rdfs:label "%s"@en;
-                  wikibase:directClaim  ?wdt.
-        ?country wdt:P31 wd:Q3624078.
-         ?country  ?wdt ?res;
-                 rdfs:label ?countryLabel.
-        FILTER (lang(?countryLabel) = "en")
-        FILTER(?res<%s)
-        SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
-      }
-
-      ORDER BY ASC(?countryLabel)
-      LIMIT 1000
-
-      """%(attribute,limit)
-      #print(attribute,limit)
-      sparql.setQuery(sql)
-
-      sparql.setReturnFormat(JSON)
-      results = sparql.query().convert()
-      for result in results["results"]["bindings"]:
-          print(result["countryLabel"]["value"],end="\t")
-          print(result["res"]["value"],end="\n")
-def howMany(attribute,comp,limit):
-  sparql = SPARQLWrapper("http://query.wikidata.org/sparql")
-  if(comp==0):
-      sql = """ 
-      SELECT (COUNT(?countryLabel) AS ?res)
-      WHERE
-      {
-        ?property wdt:P31/wdt:P279* wd:Q18616576;
-                 rdfs:label "%s"@en;
-                  wikibase:directClaim  ?wdt.
-        ?country wdt:P31 wd:Q3624078.
-         ?country  ?wdt ?res;
-                 rdfs:label ?countryLabel.
-        FILTER (lang(?countryLabel) = "en")
-        SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
-      }
-
-      """%(attribute)
-      #print(attribute)
-      sparql.setQuery(sql)
-
-      sparql.setReturnFormat(JSON)
-      results = sparql.query().convert()
-      for result in results["results"]["bindings"]:
-          print(result["res"]["value"],end="\n")
-  if(comp==1):
-      sql = """ 
-      SELECT (COUNT(?countryLabel) AS ?res)
-      WHERE
-      {
-        ?property wdt:P31/wdt:P279* wd:Q18616576;
-                 rdfs:label "%s"@en;
-                  wikibase:directClaim  ?wdt.
-        ?country wdt:P31 wd:Q3624078.
-         ?country  ?wdt ?res;
-                 rdfs:label ?countryLabel.
-        FILTER (lang(?countryLabel) = "en")
-        FILTER(?res>%s)
-        SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
-      }
-
-      """%(attribute,limit)
-      #print(attribute,limit)
-      sparql.setQuery(sql)
-
-      sparql.setReturnFormat(JSON)
-      results = sparql.query().convert()
-      for result in results["results"]["bindings"]:
-          print(result["res"]["value"],end="\n")
-  if(comp==-1):
-      sql = """ 
-      SELECT (COUNT(?countryLabel) AS ?res)
-      WHERE
-      {
-        ?property wdt:P31/wdt:P279* wd:Q18616576;
-                 rdfs:label "%s"@en;
-                  wikibase:directClaim  ?wdt.
-        ?country wdt:P31 wd:Q3624078.
-         ?country  ?wdt ?res;
-                 rdfs:label ?countryLabel.
-        FILTER (lang(?countryLabel) = "en")
-        FILTER(?res<%s)
-        SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
-      }
-
-      """%(attribute,limit)
-      print(attribute,limit)
-      sparql.setQuery(sql)
-
-      sparql.setReturnFormat(JSON)
-      results = sparql.query().convert()
-      #print(results)
-      for result in results["results"]["bindings"]:
-          print(result["res"]["value"],end="\n")
+  for result in results["results"]["bindings"]:
+      ret+=(result["birthPlace"]["value"])
+  return ret
